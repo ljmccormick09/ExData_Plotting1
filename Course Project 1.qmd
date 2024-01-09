@@ -1,0 +1,139 @@
+---
+title: "Exploratory Data Analysis Course Project 1"
+author: "Lisa McCormick"
+format: html
+editor: visual
+---
+
+## Exploratory Data Analysis Course Project 1
+
+**\*\*Note: All the code for the plots is located in this Quarto file for simplicity (instead of in separate .R files.) The scripts are separated by plot number so should be easily distinguished from one another.**
+
+Our overall goal here is simply to examine how household energy usage varies over a 2-day period in February, 2007. Your task is to reconstruct the following plots below, all of which were constructed using the base plotting system.
+
+First you will need to fork and clone the following GitHub repository: <https://github.com/rdpeng/ExData_Plotting1>
+
+For each plot you should
+
+-   Construct the plot and save it to a PNG file with a width of 480 pixels and a height of 480 pixels.
+
+-   Name each of the plot files as plot1.pngplot1.png, plot2.pngplot2.png, etc.
+
+-   Create a separate R code file (plot1.Rplot1.R, plot2.Rplot2.R, etc.) that constructs the corresponding plot, i.e. code in plot1.Rplot1.R constructs the plot1.pngplot1.png plot. Your code file should include code for reading the data so that the plot can be fully reproduced. You must also include the code that creates the PNG file. **\*\*See Note above about R scripts.**
+
+-   Add the PNG file and R code file to the top-level folder of your git repository (no need for separate sub-folders)
+
+When you are finished with the assignment, push your git repository to GitHub so that the GitHub version of your repository is up to date. There should be four PNG files and four R code files, a total of eight files in the top-level folder of the repo.
+
+## Step 1: Getting the data
+
+Read the data into R.
+
+Convert the Date column to date class
+
+Create a subset of the data for only 1 Feb 2007 and 2 Feb 2007
+
+Convert the Time column to times class
+
+```{r}
+
+library(dplyr)
+
+my_df <- read.table("C:/Users/lisa.mccormick/Documents/Coursera materials/Exploratory Data Analysis/household_power_consumption.txt", sep = ";", header = TRUE)
+
+my_df$New_Date <- as.Date(my_df$Date, format="%d/%m/%Y")
+
+subset_dates <- my_df %>% 
+  filter(between(New_Date, as.Date('2007-02-01'), as.Date('2007-02-02')))
+
+library(chron)
+subset_dates$New_Time <- times(subset_dates$Time)
+
+subset_dates[,3:6] <- lapply(subset_dates[,3:6], as.numeric)
+```
+
+## Step 2: Making Plot1
+
+Create plot1.png- this is a histogram of the Global Active Power variable.
+
+```{r}
+
+png("C:/Users/lisa.mccormick/Documents/Coursera materials/Exploratory Data Analysis/plot1.png", width = 480, height = 480)
+
+hist(subset_dates$Global_active_power, xlab = "Global Active Power (kilowatts)", main = "Global Active Power", col = "red", border = "black")
+
+dev.off()
+```
+
+## Step 3: Making Plot2
+
+Create plot2.png- this is a graph of the Global active power usage over the two day period 01 Feb - 02 Feb 2007.
+
+```{r}
+
+##Put date and time together in new column
+
+subset_dates$DateTime <- as.POSIXct(paste(subset_dates$New_Date, subset_dates$New_Time), format="%Y-%m-%d %H:%M:%S")
+
+png("C:/Users/lisa.mccormick/Documents/Coursera materials/Exploratory Data Analysis/plot2.png", width = 480, height = 480)
+
+plot(subset_dates$Global_active_power ~ subset_dates$DateTime, type = "l",
+     ylab = "Global Active Power (kilowatts)", xlab = "")
+
+dev.off()
+```
+
+## Step 4: Making Plot3
+
+Energy Submetering Type (Different types of energy usage: Kitchen vs. laundry room vs. water heater/air conditioner) over two day period
+
+```{r}
+
+png("C:/Users/lisa.mccormick/Documents/Coursera materials/Exploratory Data Analysis/plot3.png", width = 480, height = 480)
+
+plot(subset_dates$DateTime, subset_dates$Sub_metering_1, xlab = "", ylab = "Energy sub metering", type = "l")
+lines(subset_dates$DateTime, subset_dates$Sub_metering_2, col = "red")
+lines(subset_dates$DateTime, subset_dates$Sub_metering_3, col = "blue")
+
+legend("topright", c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), 
+       col = c("black","red","blue"), lty = 1)
+
+dev.off()
+
+```
+
+## Step 5: Making Plot4
+
+Make 4 plots in a 2x2 grid.
+
+Repeat plots 2 and 3.
+
+Make 2 new plots: First one shows voltage over time and other shows reactive power over time.
+
+```{r}
+
+png("C:/Users/lisa.mccormick/Documents/Coursera materials/Exploratory Data Analysis/plot4.png", width = 480, height = 480)
+
+par(mfrow = c(2,2))
+
+#row1, col1
+plot(subset_dates$Global_active_power ~ subset_dates$DateTime, type = "l",
+     ylab = "Global Active Power (kilowatts)", xlab = "")
+
+#row1, col2
+plot(subset_dates$DateTime, subset_dates$Voltage, xlab = "datetime", ylab = "Voltage", type = "l")
+
+#row2, col1
+plot(subset_dates$DateTime, subset_dates$Sub_metering_1, xlab = "", ylab = "Energy sub metering", type = "l")
+lines(subset_dates$DateTime, subset_dates$Sub_metering_2, col = "red")
+lines(subset_dates$DateTime, subset_dates$Sub_metering_3, col = "blue")
+
+legend("topright", c("Sub_metering_1", "Sub_metering_2", "Sub_metering_3"), 
+       col = c("black","red","blue"), cex = 0.8, lty = 1 , bty = "n")
+
+#row2, col2
+plot(subset_dates$DateTime, subset_dates$Global_reactive_power, xlab = "datetime", ylab = "Global_reactive_power", type = "l")
+
+dev.off()
+
+```
